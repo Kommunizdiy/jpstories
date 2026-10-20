@@ -12,5 +12,13 @@ export function parseStory(raw, id) {
   if (!meta.title || !Number.isInteger(lesson) || lesson < 1 || lesson > 23 || !body) {
     throw new Error(`${id}: нужны title, lesson от 1 до 23 и непустой текст`);
   }
-  return { id, lesson, title: meta.title, subtitle: meta.subtitle || '', body };
+  const story = { id, lesson, title: meta.title, subtitle: meta.subtitle || '', body };
+  if (meta.note) story.note = meta.note;
+  if (meta.series) {
+    const chapter = Number(meta.chapter);
+    if (!Number.isInteger(chapter) || chapter < 1) throw new Error(`${id}: для серии нужен положительный номер chapter`);
+    story.series = meta.series;
+    story.chapter = chapter;
+  }
+  return story;
 }

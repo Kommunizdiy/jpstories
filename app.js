@@ -17,7 +17,7 @@ function renderLessons() {
     $('#lessons').append(button);
   }
 }
-function render() {
+function render(selectedId) {
   closePopup(); renderLessons();
   document.querySelectorAll('[data-book]').forEach(b => { b.classList.toggle('active', +b.dataset.book === book); b.setAttribute('aria-pressed', String(+b.dataset.book === book)); });
   $('#book-label').textContent = `GENKI ${book === 1 ? 'I' : 'II'} · 3RD EDITION`;
@@ -34,15 +34,22 @@ function render() {
     button.append(number, titles, arrow); button.onclick = () => openStory(story); button.dataset.id = story.id;
     $('#story-list').append(button);
   });
-  if (filtered.length) openStory(filtered[0]);
+  if (filtered.length) openStory(filtered.find(story => story.id === selectedId) || filtered[0]);
   else { current = null; $('#reader').hidden = true; const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = 'Здесь начинается следующая глава. Добавьте историю для этого урока в папку stories и пересоберите сайт.'; $('#story-list').append(empty); }
 }
 function openStory(story) {
   closePopup(); current = story; $('#reader').hidden = false;
   document.querySelectorAll('.story-card').forEach(c => c.classList.toggle('active', c.dataset.id === story.id));
   $('#reader-title').textContent = story.title; $('#reader-subtitle').textContent = story.subtitle;
+  $('#level-note').hidden = !story.note;
+  $('#level-note').open = false;
+  $('#level-note-text').textContent = story.note || '';
   $('#reader-body').replaceChildren();
   for (const paragraph of story.body.split(/\n\s*\n/)) {
+    if (paragraph === 'Вопросы к тексту') {
+      const heading = document.createElement('h3'); heading.textContent = paragraph; heading.lang = 'ru';
+      $('#reader-body').append(heading); continue;
+    }
     const p = document.createElement('p');
     const pattern = /\[([^\]|]+)\|([^\]|]*)\|([^\]]+)\]/g;
     let end = 0;
@@ -53,6 +60,21 @@ function openStory(story) {
       word.onclick = () => showWord(word, match[1], match[2], match[3]); p.append(word); end = match.index + match[0].length;
     }
     p.append(document.createTextNode(paragraph.slice(end))); $('#reader-body').append(p);
+  }
+  const navigation = $('#series-navigation'); navigation.replaceChildren(); navigation.hidden = !story.series;
+  if (story.series) {
+    const chapters = stories.filter(s => s.series === story.series).sort((a, b) => a.chapter - b.chapter);
+    const position = chapters.findIndex(s => s.id === story.id);
+    for (const [target, label] of [[chapters[position - 1], '← Предыдущая глава'], [chapters[position + 1], 'Следующая глава →']]) {
+      if (!target) continue;
+      const button = document.createElement('button');
+      button.textContent = `${label} · Урок ${target.lesson}`;
+      button.onclick = () => {
+        lesson = target.lesson; book = lesson <= 12 ? 1 : 2; render(target.id);
+        $('#reader').scrollIntoView({ block: 'start' });
+      };
+      navigation.append(button);
+    }
   }
   updateRead();
 }
