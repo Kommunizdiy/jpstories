@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>小さな物語 — Японские истории</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><a class="brand" href="./"><span class="seal">物語</span><span>小さな物語<small>Маленькие истории</small></span></a><span class="header-note">Читаем по-японски, шаг за шагом</span></header>
+<main>
+<aside>
+<div class="eyebrow">ВАША КНИЖНАЯ ПОЛКА</div>
+<h1>Один урок.<br>Новая история.</h1>
+<p class="intro">Небольшие тексты для неспешного чтения. Нажмите на слово, чтобы узнать его значение.</p>
+<div class="book-tabs" role="group" aria-label="Учебник"><button data-book="1" class="active">Genki I <span>1–12</span></button><button data-book="2">Genki II <span>13–23</span></button></div>
+<div id="lessons" class="lessons" aria-label="Уроки"></div>
+<div class="folder-note"><span>↳ stories/</span>Ваша коллекция из текстовых файлов</div>
+</aside>
+<section class="library">
+<div class="section-head"><div><div class="eyebrow" id="book-label">GENKI I · 3RD EDITION</div><h2 id="lesson-title">Урок 1</h2></div><span id="story-count" class="count"></span></div>
+<div id="story-list" class="story-list"></div>
+<article id="reader" hidden>
+<div class="reader-top"><span class="eyebrow">ВРЕМЯ ДЛЯ ЧТЕНИЯ</span><div class="reader-controls"><button id="font-size" title="Изменить размер текста" aria-label="Изменить размер текста">あ A</button><button id="mark-read">✓ Прочитано</button></div></div>
+<h2 id="reader-title" lang="ja"></h2><p id="reader-subtitle"></p>
+<div id="reader-body" lang="ja"></div>
+<footer class="reader-footer"><span>言葉をひとつずつ。</span><span>Слово за словом.</span></footer>
+</article>
+<div class="bottom-note"><span class="dot"></span>В своём темпе. Без оценок и спешки.</div>
+</section>
+</main>
+<div id="word-popup" role="dialog" aria-label="Перевод слова" hidden><button id="close-popup" aria-label="Закрыть">×</button><div id="word-surface" lang="ja"></div><div id="word-reading" lang="ja"></div><div id="word-meaning"></div></div>
+<script type="module" src="app.js"></script>
+</body></html>
+

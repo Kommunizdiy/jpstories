@@ -1,0 +1,13 @@
+{
+  "name": "jpstories",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/dev.mjs --preview",
+    "test": "node --test"
+  }
+}
