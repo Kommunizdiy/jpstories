@@ -103,11 +103,31 @@ function render(selectedId, historyMode = 'push', explicit = true) {
     }
   }
   const filtered = stories.filter(s => s.lesson === lesson);
-  $('#story-count').textContent = `Историй: ${filtered.length}`;
+  // Если у серии в уроке несколько глав, они показываются одной карточкой со ссылкой на оглавление.
+  const perSeries = new Map();
+  for (const s of filtered) if (s.series && seriesByName.has(s.series)) perSeries.set(s.series, (perSeries.get(s.series) || 0) + 1);
+  const items = [], grouped = new Set();
+  for (const s of filtered) {
+    if (perSeries.get(s.series) > 1) {
+      if (!grouped.has(s.series)) { grouped.add(s.series); items.push({ group: seriesByName.get(s.series) }); }
+    } else items.push({ story: s });
+  }
+  $('#story-count').textContent = `Историй: ${items.length}`;
   $('#story-list').replaceChildren();
-  filtered.forEach((story, i) => {
+  items.forEach((item, i) => {
+    const number = el('span', 'story-number', String(i + 1).padStart(2, '0'));
+    if (item.group) {
+      const info = item.group, plan = planFor(info);
+      const card = el('a', 'story-card in-series series-group');
+      card.href = seriesHash(info.id); card.dataset.series = info.name;
+      const titles = el('span');
+      titles.append(el('span', 'series-tag', `Большая история · ${chapterCount(plan.total)}`), el('strong', '', info.title || info.name, info.title ? 'ja' : ''), el('small', 'series-group-meta', groupMeta(info, plan)));
+      card.append(number, titles, el('span', 'story-arrow', '→'));
+      $('#story-list').append(card);
+      return;
+    }
+    const story = item.story;
     const button = document.createElement('button'); button.className = 'story-card';
-    const number = document.createElement('span'); number.className = 'story-number'; number.textContent = String(i + 1).padStart(2, '0');
     const titles = document.createElement('span'); const title = document.createElement('strong'); title.lang = 'ja'; title.textContent = story.title;
     const sub = document.createElement('small'); sub.textContent = story.subtitle;
     if (story.series) {
@@ -123,8 +143,9 @@ function render(selectedId, historyMode = 'push', explicit = true) {
     $('#story-list').append(button);
   });
   const chosen = filtered.find(story => story.id === selectedId);
-  // Глава, открытая просто потому что она первая в уроке, не считается «последней прочитанной».
-  if (filtered.length) openStory(chosen || filtered[0], historyMode, Boolean(chosen) && explicit);
+  // Без выбора открывается первая отдельная история урока, а не глава из середины серии.
+  const fallback = items.find(item => item.story)?.story || filtered[0];
+  if (filtered.length) openStory(chosen || fallback, historyMode, Boolean(chosen) && explicit);
   else { current = null; $('#reader').hidden = true; const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = 'Здесь начинается следующая глава. Добавьте историю для этого урока в папку stories и пересоберите сайт.'; $('#story-list').append(empty); document.title = `Урок ${lesson} — 小さな物語`; saveLocation(null, historyMode); }
   renderSeriesShelf();
 }
@@ -134,7 +155,7 @@ function openStory(story, historyMode = 'push', explicit = true) {
   saveLocation(story.id, historyMode);
   if (explicit) rememberChapter(story);
   renderSeriesBar(story);
-  document.querySelectorAll('.story-card').forEach(c => c.classList.toggle('active', c.dataset.id === story.id));
+  document.querySelectorAll('#story-list .story-card').forEach(c => c.classList.toggle('active', c.dataset.id === story.id || (Boolean(story.series) && c.dataset.series === story.series)));
   $('#reader-title').textContent = story.title; $('#reader-subtitle').textContent = story.subtitle;
   $('#level-note').hidden = !story.note;
   $('#level-note').open = false;
@@ -223,6 +244,7 @@ function meter(info, plan) {
   return bar;
 }
 const chapterCount = n => `${n} ${plural(n, ['глава', 'главы', 'глав'])}`;
+const groupMeta = (info, plan) => `${info.name} · ${plan.read ? `прочитано ${plan.read} из ${plan.total}` : 'оглавление и описание'}`;
 function renderSeriesShelf(activeId = null) {
   const shelf = $('#series-shelf'); shelf.replaceChildren();
   shelf.hidden = !series.length;
@@ -325,8 +347,15 @@ $('#mark-read').onclick = () => {
   if (!current) return;
   completed.has(current.id) ? completed.delete(current.id) : completed.add(current.id);
   try { localStorage.setItem('jpstories-read', JSON.stringify([...completed])); } catch {}
-  updateRead(); document.querySelector(`.story-card.active .story-arrow`).textContent = completed.has(current.id) ? '✓' : '↗';
-  if (current.series) { renderSeriesShelf(); renderSeriesBar(current); }
+  updateRead();
+  const arrow = document.querySelector(`#story-list .story-card[data-id="${current.id}"] .story-arrow`);
+  if (arrow) arrow.textContent = completed.has(current.id) ? '✓' : '↗';
+  if (current.series) {
+    renderSeriesShelf(); renderSeriesBar(current);
+    const info = seriesByName.get(current.series);
+    const meta = info && document.querySelector(`#story-list .series-group[data-series="${CSS.escape(info.name)}"] .series-group-meta`);
+    if (meta) meta.textContent = groupMeta(info, planFor(info));
+  }
 };
 document.querySelectorAll('[data-book]').forEach(button => button.onclick = () => { book = +button.dataset.book; lesson = book === 1 ? 1 : 13; render(); });
 $('#font-size').onclick = () => { $('#reader-body').classList.toggle('large'); closePopup(); };

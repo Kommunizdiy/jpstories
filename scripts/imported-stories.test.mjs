@@ -12,7 +12,8 @@ test('all 18 imported texts and 54 questions survive annotation without untransl
   const imported = [];
   for (const file of files) {
     const story = parseStory(await readFile(path.join(root, 'stories', file), 'utf8'), file.slice(0, -4));
-    if (story.note) imported.push(story);
+    // Импортированные тексты — те, что есть в source.json; новые серии проверяет stories-markup.test.mjs.
+    if (story.note && sources.some(s => s.title === story.title && (s.chapter || null) === (story.chapter || null))) imported.push(story);
   }
   assert.equal(sources.length, 18);
   assert.equal(imported.length, 18);
