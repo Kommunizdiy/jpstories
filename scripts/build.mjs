@@ -7,7 +7,7 @@ import { collectSeries, readSeries } from './series.mjs';
 
 export const root = fileURLToPath(new URL('../', import.meta.url));
 export const output = path.join(root, 'dist');
-export const staticFiles = ['index.html', 'app.js', 'routing.js', 'reference.js', 'series.js', 'style.css'];
+export const staticFiles = ['index.html', 'app.js', 'routing.js', 'reference.js', 'series.js', 'flashcards.js', 'style.css'];
 export async function build() {
   const directory = path.join(root, 'stories');
   const files = (await readdir(directory)).filter(file => file.endsWith('.txt')).sort();

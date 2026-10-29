@@ -1,5 +1,6 @@
 // Справочник: грамматика, словарь, кандзи и счётные суффиксы. Данные — reference.json из папки reference/.
 import { referenceHash } from './routing.js';
+import { openFlashcards } from './flashcards.js';
 
 let cache = null;
 let ref = null;
@@ -96,7 +97,7 @@ function renderVocab(container, route) {
   const themes = ref.themes;
   const gk = new Set(ref.kanji.map(k => k.kanji));
   const st = {
-    mode: route.q ? 'lessons' : store.get('mode', 'themes'),
+    mode: route.q ? 'lessons' : route.theme ? 'themes' : store.get('mode', 'themes'),
     theme: themes.includes(route.theme) ? route.theme : 'all',
     lesson: route.lesson && route.lesson <= 12 ? route.lesson : 'all',
     group: store.get('group', 'all'),
@@ -109,7 +110,7 @@ function renderVocab(container, route) {
     ${chipRow('Тема', [['all', 'Все темы']].concat(themes.map(t => [t, t, themeCount[t]])), st.theme, 'ref-themes')}
     ${chipRow('Урок', [['all', 'Все']].concat(Array.from({ length: 12 }, (_, i) => [i + 1, i + 1])), st.lesson, 'ref-lessons')}
     ${chipRow('Тип', GROUPS, st.group, 'ref-groups')}
-    <div class="ref-toggles"><label><input type="checkbox" id="ref-hide-kn"> Скрыть чтение</label><label><input type="checkbox" id="ref-hide-ru"> Скрыть перевод</label><span class="count" id="ref-count"></span></div>
+    <div class="ref-toggles"><label><input type="checkbox" id="ref-hide-kn"> Скрыть чтение</label><label><input type="checkbox" id="ref-hide-ru"> Скрыть перевод</label><button type="button" class="fc-start" id="ref-cards">Карточки</button><span class="count" id="ref-count"></span></div>
     <p class="ref-legend">Цветом выделены кандзи, которые изучаются в Genki I. «ур.» — урок, где слово появляется. В режиме проверки нажмите на строку, чтобы открыть скрытое.</p>
   </div><div id="ref-body" class="v-list"></div>
   <p class="ref-note">Слова собраны по открытым спискам лексики Genki и сверены вручную. Свободного списка именно 3-го издания нет, поэтому отдельные слова в книге могут стоять в другом уроке.</p>`;
@@ -135,7 +136,7 @@ function renderVocab(container, route) {
       for (const theme of themes) {
         const inTheme = items.filter(w => w.theme === theme);
         if (!inTheme.length) continue;
-        out += `<section class="v-theme"><div class="v-theme-head"><h2>${esc(theme)}</h2><span class="count">${inTheme.length}</span><button type="button" class="ref-copy" data-theme="${esc(theme)}">Скопировать список</button></div>`;
+        out += `<section class="v-theme"><div class="v-theme-head"><h2>${esc(theme)}</h2><span class="count">${inTheme.length}</span><button type="button" class="ref-copy" data-theme="${esc(theme)}">Скопировать список</button><button type="button" class="ref-copy ref-cards-theme" data-theme="${esc(theme)}">Карточки</button></div>`;
         for (const [group, label] of TYPE_SECTIONS) {
           const rows = inTheme.filter(w => inGroup(w.type, group));
           if (rows.length) out += `<h3 class="v-sub">${label}</h3>` + rows.map(w => word(w, (SHORT[w.type] ? SHORT[w.type] + ' · ' : '') + 'ур. ' + w.lesson)).join('');
@@ -151,6 +152,8 @@ function renderVocab(container, route) {
     }
     body.innerHTML = out || '<div class="empty">Ничего не найдено. Попробуйте другое слово или сбросьте фильтры.</div>';
     container.querySelector('#ref-count').textContent = `Показано: ${items.length} из ${ref.vocab.length}`;
+    const cards = container.querySelector('#ref-cards');
+    cards.textContent = `Карточки · ${items.length}`; cards.disabled = !items.length;
   };
   const bind = (id, key, parse = v => v, after) => container.querySelector('#' + id).onclick = e => {
     const b = e.target.closest('.chip'); if (!b) return;
@@ -166,7 +169,24 @@ function renderVocab(container, route) {
     box.checked = store.get(id, false); body.classList.toggle(cls, box.checked);
     box.onchange = () => { body.classList.toggle(cls, box.checked); store.set(id, box.checked); body.querySelectorAll('.v.open').forEach(r => r.classList.remove('open')); };
   }
+  // Карточки: по всем словам, которые сейчас выбраны фильтрами, или по одной теме.
+  const describe = () => {
+    const parts = [];
+    if (st.mode === 'themes' && st.theme !== 'all') parts.push(st.theme);
+    if (st.lesson !== 'all') parts.push(`Урок ${st.lesson}`);
+    if (st.group !== 'all') parts.push(GROUPS.find(([v]) => v === st.group)[1]);
+    if (st.q.trim()) parts.push(`«${st.q.trim()}»`);
+    return parts.join(' · ') || 'Все слова';
+  };
+  const cardsButton = container.querySelector('#ref-cards');
+  cardsButton.onclick = () => openFlashcards({ words: filtered(), title: describe(), pos: POS, known: gk, opener: cardsButton });
   body.onclick = e => {
+    const themeCards = e.target.closest('.ref-cards-theme');
+    if (themeCards) {
+      const theme = themeCards.dataset.theme;
+      openFlashcards({ words: filtered().filter(w => w.theme === theme), title: [theme, st.lesson !== 'all' ? `Урок ${st.lesson}` : ''].filter(Boolean).join(' · '), pos: POS, known: gk, opener: themeCards });
+      return;
+    }
     const copy = e.target.closest('.ref-copy');
     if (copy) { copyTheme(copy, filtered().filter(w => w.theme === copy.dataset.theme)); return; }
     e.target.closest('.v')?.classList.toggle('open');
