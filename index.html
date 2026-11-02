@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><a class="brand" href="./"><span class="seal">物語</span><span>小さな物語<small>Маленькие истории</small></span></a><nav class="site-nav" aria-label="Разделы"><a href="#" data-view="stories">Истории</a><a href="#view=grammar" data-view="grammar">Грамматика</a><a href="#view=vocab" data-view="vocab">Словарь</a><a href="#view=kanji" data-view="kanji">Кандзи</a><a href="#view=counters" data-view="counters">Счёт</a></nav></header>
+<header><a class="brand" href="./"><span class="seal">物語</span><span>小さな物語<small>Маленькие истории</small></span></a><nav class="site-nav" aria-label="Разделы"><a href="#" data-view="stories">Истории</a><a href="#view=tasks" data-view="tasks">Задания</a><a href="#view=grammar" data-view="grammar">Грамматика</a><a href="#view=vocab" data-view="vocab">Словарь</a><a href="#view=kanji" data-view="kanji">Кандзи</a><a href="#view=counters" data-view="counters">Счёт</a></nav></header>
 <main id="stories-view">
 <aside>
 <div class="eyebrow">ВАША КНИЖНАЯ ПОЛКА</div>
@@ -34,6 +34,7 @@
 </section>
 </main>
 <main id="reference-view" class="reference" hidden></main>
+<main id="tasks-view" class="reference" hidden></main>
 <div id="word-popup" role="dialog" aria-label="Перевод слова" hidden><button id="close-popup" aria-label="Закрыть">×</button><div id="word-surface" lang="ja"></div><div id="word-reading" lang="ja"></div><div id="word-meaning"></div><a id="word-dictionary" class="word-dictionary" hidden>Найти в словаре →</a></div>
 <script type="module" src="app.js"></script>
 </body></html>

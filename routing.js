@@ -20,6 +20,11 @@ export function seriesHash(id) {
   return `#${new URLSearchParams({ series: id })}`;
 }
 
+// Texts with tasks (discussion questions with answer fields): #view=tasks.
+export function tasksHash() {
+  return '#view=tasks';
+}
+
 // Reference sections: #view=grammar|vocab|kanji|counters, optionally &lesson=N, &theme=…, &q=….
 export const REFERENCE_VIEWS = ['grammar', 'vocab', 'kanji', 'counters'];
 
@@ -28,6 +33,7 @@ export function routeView(hash) {
   try { params = new URLSearchParams((hash || '').replace(/^#/, '')); } catch { return { view: 'stories' }; }
   const view = params.get('view');
   if (!view && params.get('series')) return { view: 'series', series: params.get('series') };
+  if (view === 'tasks') return { view: 'tasks' };
   if (!REFERENCE_VIEWS.includes(view)) return { view: 'stories' };
   const route = { view };
   const lesson = Number(params.get('lesson'));

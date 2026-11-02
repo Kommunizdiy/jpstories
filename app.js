@@ -1,6 +1,7 @@
 import { routeHash, resolveRoute, routeView, referenceHash, seriesHash } from './routing.js';
 import { showReference, loadReference, dictionaryMatches } from './reference.js';
 import { readingPlan, plural } from './series.js';
+import { splitSections, tasksOf, glossaryOf, TOKEN } from './sections.js';
 
 let stories = [];
 let series = [];
@@ -13,6 +14,16 @@ try { completed = new Set(JSON.parse(localStorage.getItem('jpstories-read') || '
 // Последняя открытая глава каждой большой истории: { camera: '04-camera-04' }.
 let seriesLast = {};
 try { const saved = JSON.parse(localStorage.getItem('jpstories-series') || '{}'); if (saved && typeof saved === 'object' && !Array.isArray(saved)) seriesLast = saved; } catch {}
+// Ответы на задания: { 'id-истории': ['ответ 1', 'ответ 2'] }.
+let answers = {};
+try { const saved = JSON.parse(localStorage.getItem('jpstories-answers') || '{}'); if (saved && typeof saved === 'object' && !Array.isArray(saved)) answers = saved; } catch {}
+function saveAnswer(storyId, index, text) {
+  const list = Array.isArray(answers[storyId]) ? answers[storyId] : [];
+  list[index] = text;
+  answers[storyId] = list;
+  try { localStorage.setItem('jpstories-answers', JSON.stringify(answers)); return true; } catch { return false; }
+}
+const answeredCount = story => tasksOf(story.body).filter((_, i) => (answers[story.id]?.[i] || '').trim()).length;
 function el(tag, className = '', text = '', lang = '') {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -58,7 +69,8 @@ function route(force = false) {
   const target = routeView(location.hash);
   const isStories = target.view === 'stories' || target.view === 'series';
   $('#stories-view').hidden = !isStories;
-  $('#reference-view').hidden = isStories;
+  $('#reference-view').hidden = isStories || target.view === 'tasks';
+  $('#tasks-view').hidden = target.view !== 'tasks';
   document.querySelectorAll('.site-nav a').forEach(a => {
     const on = a.dataset.view === (isStories ? 'stories' : target.view);
     a.classList.toggle('active', on);
@@ -68,6 +80,7 @@ function route(force = false) {
   if (target.view === 'series') { showSeries(target.series); return; }
   if (isStories) { restoreLocation(!location.hash); return; }
   scrollTo(0, 0);
+  if (target.view === 'tasks') { showTasks(); return; }
   showReference($('#reference-view'), target);
 }
 function renderLessons(active = lesson) {
@@ -160,23 +173,7 @@ function openStory(story, historyMode = 'push', explicit = true) {
   $('#level-note').hidden = !story.note;
   $('#level-note').open = false;
   $('#level-note-text').textContent = story.note || '';
-  $('#reader-body').replaceChildren();
-  for (const paragraph of story.body.split(/\n\s*\n/)) {
-    if (paragraph === 'Вопросы к тексту') {
-      const heading = document.createElement('h3'); heading.textContent = paragraph; heading.lang = 'ru';
-      $('#reader-body').append(heading); continue;
-    }
-    const p = document.createElement('p');
-    const pattern = /\[([^\]|]+)\|([^\]|]*)\|([^\]]+)\]/g;
-    let end = 0;
-    for (const match of paragraph.matchAll(pattern)) {
-      p.append(document.createTextNode(paragraph.slice(end, match.index)));
-      const word = document.createElement('button'); word.className = 'word'; word.textContent = match[1];
-      word.setAttribute('aria-label', `${match[1]} — показать перевод`);
-      word.onclick = () => showWord(word, match[1], match[2], match[3]); p.append(word); end = match.index + match[0].length;
-    }
-    p.append(document.createTextNode(paragraph.slice(end))); $('#reader-body').append(p);
-  }
+  $('#reader-body').replaceChildren(...renderBody(story));
   const navigation = $('#series-navigation'); navigation.replaceChildren(); navigation.hidden = !story.series;
   if (story.series) {
     const chapters = chaptersOf(story.series);
@@ -192,6 +189,112 @@ function openStory(story, historyMode = 'push', explicit = true) {
     if (next) navigation.append(chapterLink(next, `Следующая глава → · Урок ${next.lesson}`));
   }
   updateRead();
+}
+
+// ——— Текст истории и его разделы ———
+function annotated(paragraph, tag = 'p') {
+  const node = document.createElement(tag);
+  let end = 0;
+  for (const match of paragraph.matchAll(TOKEN)) {
+    node.append(document.createTextNode(paragraph.slice(end, match.index)));
+    const word = el('button', 'word', match[1]);
+    word.setAttribute('aria-label', `${match[1]} — показать перевод`);
+    word.onclick = () => showWord(word, match[1], match[2], match[3]); node.append(word); end = match.index + match[0].length;
+  }
+  node.append(document.createTextNode(paragraph.slice(end)));
+  return node;
+}
+function sectionHeading(text, id = '') {
+  const heading = el('h3', '', text, 'ru');
+  if (id) heading.id = id;
+  return heading;
+}
+function renderBody(story) {
+  const nodes = [];
+  let taskIndex = 0;
+  for (const section of splitSections(story.body)) {
+    if (section.kind === 'text') { nodes.push(...section.paragraphs.map(p => annotated(p))); continue; }
+    if (section.kind === 'questions') { nodes.push(sectionHeading(section.title), ...section.paragraphs.map(p => annotated(p))); continue; }
+    if (section.kind === 'words') {
+      const list = el('dl', 'glossary');
+      for (const entry of glossaryOf(section.paragraphs)) {
+        const term = el('dt');
+        const word = el('button', 'word', entry.surface);
+        word.setAttribute('aria-label', `${entry.surface} — показать перевод`);
+        word.onclick = () => showWord(word, entry.surface, entry.reading, entry.meaning);
+        term.append(word);
+        if (entry.reading) term.append(el('span', 'glossary-kana', entry.reading));
+        list.append(term, el('dd', '', entry.meaning, 'ru'));
+      }
+      nodes.push(sectionHeading(section.title), list);
+      continue;
+    }
+    if (section.kind === 'tasks') {
+      nodes.push(sectionHeading(section.title, 'story-tasks'));
+      const list = el('ol', 'tasks');
+      for (const paragraph of section.paragraphs) {
+        const index = taskIndex++;
+        const item = el('li', 'task');
+        const field = el('textarea', 'task-answer');
+        field.lang = 'ja'; field.rows = 3;
+        field.placeholder = 'Ваш ответ — по-японски или по-русски';
+        field.setAttribute('aria-label', `Ответ на задание ${index + 1}`);
+        field.value = answers[story.id]?.[index] || '';
+        const status = el('span', 'task-status');
+        status.setAttribute('aria-live', 'polite');
+        let timer;
+        field.addEventListener('input', () => {
+          clearTimeout(timer);
+          timer = setTimeout(() => { status.textContent = saveAnswer(story.id, index, field.value) ? 'Сохранено в этом браузере' : 'Не удалось сохранить'; }, 400);
+        });
+        item.append(annotated(paragraph), field, status);
+        list.append(item);
+      }
+      nodes.push(list);
+      continue;
+    }
+    if (section.kind === 'translation') {
+      const details = el('details', 'translation');
+      details.lang = 'ru';
+      details.append(el('summary', '', 'Перевод текста'), ...section.paragraphs.map(p => el('p', '', p)));
+      nodes.push(details);
+    }
+  }
+  return nodes;
+}
+
+// ——— Раздел «Задания»: тексты с вопросами для обсуждения ———
+function showTasks() {
+  const page = $('#tasks-view');
+  document.title = 'Задания — 小さな物語';
+  page.replaceChildren();
+  const head = el('div', 'ref-head');
+  head.append(el('div', 'eyebrow', 'ЧТЕНИЕ И ОБСУЖДЕНИЕ'), el('h1', '', 'Задания'),
+    el('p', 'intro', 'Тексты с заданиями: прочитайте текст, нажимая на незнакомые слова, затем ответьте на вопросы. Ответы сохраняются в этом браузере. Перевод текста спрятан под ним — откройте, чтобы проверить себя.'));
+  page.append(head);
+  if (!storiesLoaded) { page.append(el('p', 'ref-status', 'Загружаем истории…')); return; }
+  const withTasks = stories.filter(story => tasksOf(story.body).length);
+  if (!withTasks.length) {
+    page.append(el('div', 'empty', 'Пока нет текстов с заданиями. Добавьте в историю раздел «Задания» — см. README.'));
+    return;
+  }
+  const list = el('div', 'story-list tasks-list');
+  withTasks.forEach((story, i) => {
+    const total = tasksOf(story.body).length, done = answeredCount(story);
+    const card = el('a', 'story-card');
+    card.href = routeHash({ storyId: story.id });
+    const names = el('span');
+    names.append(el('span', 'series-tag', `Урок ${story.lesson} · ${total} ${plural(total, ['задание', 'задания', 'заданий'])}`), el('strong', '', story.title, 'ja'), el('small', '', story.subtitle));
+    names.append(el('small', 'tasks-progress', done ? `Отвечено: ${done} из ${total}` : 'Ещё не начато'));
+    card.append(el('span', 'story-number', String(i + 1).padStart(2, '0')), names, el('span', 'story-arrow', done === total ? '✓' : '↗'));
+    onPlainClick(card, () => {
+      history.pushState(null, '', card.href);
+      route(true);
+      requestAnimationFrame(() => $('#story-tasks')?.scrollIntoView({ block: 'start' }));
+    });
+    list.append(card);
+  });
+  page.append(list);
 }
 
 // ——— Большие истории (серии глав) ———
@@ -381,7 +484,7 @@ async function loadStories() {
     indexStories();
     storiesLoaded = true;
     renderSeriesShelf();
-    if (['stories', 'series'].includes(routeView(location.hash).view)) route(true);
+    if (['stories', 'series', 'tasks'].includes(routeView(location.hash).view)) route(true);
   } catch (error) {
     $('#reader').hidden = true;
     $('#story-list').replaceChildren();
