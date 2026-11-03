@@ -36,7 +36,7 @@ export function routeView(hash) {
   if (view === 'tasks') return { view: 'tasks' };
   if (view === 'parts') {
     const route = { view, tab: PARTS_TABS.includes(params.get('tab')) ? params.get('tab') : 'walk' };
-    if (params.get('k')) route.k = params.get('k');
+    for (const name of ['k', 'part', 'form', 'p']) if (params.get(name)) route[name] = params.get(name);
     return route;
   }
   if (!REFERENCE_VIEWS.includes(view)) return { view: 'stories' };
@@ -51,9 +51,13 @@ export function routeView(hash) {
 // Части кандзи: #view=parts — прогулка, &k=кандзи — с какого знака, &tab=study|build|tell — тренажёр.
 export const PARTS_TABS = ['walk', 'study', 'build', 'tell'];
 
-export function partsHash({ tab, k } = {}) {
+// Набор тренажёра: &part=人 — семья части, &form=left — положение части, &p=2 или &p=r — порция.
+export function partsHash({ tab, k, part, form, p } = {}) {
   const params = new URLSearchParams({ view: 'parts' });
   if (tab && tab !== 'walk') params.set('tab', tab);
+  if (part) params.set('part', part);
+  if (form) params.set('form', form);
+  if (p) params.set('p', String(p));
   if (k) params.set('k', k);
   return `#${params}`;
 }

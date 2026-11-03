@@ -37,4 +37,5 @@ test('kanji parts have their own links with an encoded kanji', () => {
   assert.deepEqual(routeView(partsHash({ tab: 'build' })), { view: 'parts', tab: 'build' });
   assert.deepEqual(routeView('#view=parts&tab=unknown'), { view: 'parts', tab: 'walk' });
   assert.equal(partsHash(), '#view=parts');
+  assert.deepEqual(routeView(partsHash({ tab: 'study', part: '人', form: 'left', p: 2 })), { view: 'parts', tab: 'study', part: '人', form: 'left', p: '2' });
 });

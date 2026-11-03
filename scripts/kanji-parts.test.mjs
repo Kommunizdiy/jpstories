@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { buildFamilies, familyKey, positionOf, portionsOf } from '../kanji-parts.js';
 
 const nodes = JSON.parse(await readFile(new URL('../reference/kanji-parts.json', import.meta.url), 'utf8'));
 
@@ -34,4 +35,32 @@ test('every Genki kanji and every part under it is described', () => {
     assert.ok(nodes[c].m || nodes[c].f, `${c}: нет описания`);
     for (const [part] of nodes[c].p) if (part) stack.push(part);
   }
+});
+test('families merge variants, need a meaning and at least four Genki kanji', () => {
+  const families = buildFamilies(nodes);
+  const people = families.find(f => f.key === '人');
+  for (const c of ['今', '食', '休', '作']) assert.ok(people.list.includes(c), c);
+  assert.equal(families.find(f => f.key === '亻'), undefined);
+  assert.equal(familyKey(nodes, '亻'), '人');
+  assert.equal(families.find(f => f.key === '丿'), undefined);
+  assert.equal(families.find(f => f.key === '一'), undefined);
+  for (const family of families) {
+    assert.ok(family.list.length >= 4, family.key);
+    assert.ok(family.list.every(c => nodes[c].l), family.key);
+    assert.ok(nodes[family.key].m, family.key);
+  }
+});
+test('portions keep the order, cover the family and avoid tiny leftovers', () => {
+  const list = [...'一二三四五六七八九十百千万円時'];
+  assert.deepEqual(portionsOf(list).map(p => p.length), [7, 8]);
+  assert.deepEqual(portionsOf(list).flat(), list);
+  assert.deepEqual(portionsOf(list.slice(0, 5)).map(p => p.length), [5]);
+});
+test('part position is read from its box inside the kanji', () => {
+  const whole = { x: 10, y: 10, width: 90, height: 90 };
+  assert.equal(positionOf({ x: 10, y: 10, width: 90, height: 30 }, whole), 'top');
+  assert.equal(positionOf({ x: 10, y: 60, width: 90, height: 40 }, whole), 'bottom');
+  assert.equal(positionOf({ x: 10, y: 10, width: 25, height: 90 }, whole), 'left');
+  assert.equal(positionOf({ x: 70, y: 10, width: 30, height: 90 }, whole), 'right');
+  assert.equal(positionOf({ x: 40, y: 40, width: 30, height: 30 }, whole), 'inside');
 });

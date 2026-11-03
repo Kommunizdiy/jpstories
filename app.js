@@ -95,7 +95,11 @@ function renderLessons(active = lesson) {
     button.setAttribute('aria-label', `Урок ${n}`);
     button.setAttribute('aria-pressed', String(active === n));
     if (stories.some(s => s.lesson === n)) button.classList.add('has-stories');
-    button.onclick = () => { lesson = n; render(); };
+    button.onclick = () => {
+      lesson = n; render();
+      // На телефоне между уроками и историями большие истории: без прокрутки выбор урока не виден.
+      if (matchMedia('(max-width:700px)').matches) $('.library').scrollIntoView({ behavior: 'smooth' });
+    };
     $('#lessons').append(button);
   }
   document.querySelectorAll('[data-book]').forEach(b => { b.classList.toggle('active', +b.dataset.book === book); b.setAttribute('aria-pressed', String(+b.dataset.book === book)); });
@@ -431,7 +435,7 @@ function renderSeriesBar(story) {
   bar.append(top, dots);
 }
 function showWord(element, surface, reading, meaning) {
-  closePopup(); activeWord = element; element.classList.add('selected');
+  closePopup(); activeWord = element; popupScroll = scrollY; element.classList.add('selected');
   $('#word-surface').textContent = surface; $('#word-reading').textContent = reading; $('#word-meaning').textContent = meaning;
   const popup = $('#word-popup'); popup.hidden = false;
   const dictionary = $('#word-dictionary'); dictionary.hidden = true;
@@ -480,7 +484,15 @@ $('#font-size').onclick = () => { $('#reader-body').classList.toggle('large'); c
 $('#close-popup').onclick = closePopup;
 document.addEventListener('click', e => { if (!e.target.closest('.word, #word-popup')) closePopup(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const previous = activeWord; closePopup(); previous?.focus(); } });
-addEventListener('resize', closePopup); addEventListener('scroll', closePopup, true);
+// Адресная строка телефона меняет высоту окна, а палец слегка сдвигает страницу: перевод от этого не закрываем.
+let popupWidth = innerWidth, popupScroll = 0;
+addEventListener('resize', () => {
+  if (innerWidth !== popupWidth) { popupWidth = innerWidth; closePopup(); } else if (activeWord) placePopup(activeWord);
+});
+addEventListener('scroll', event => {
+  if (!activeWord) return;
+  if (event.target !== document || Math.abs(scrollY - popupScroll) > 60) closePopup(); else placePopup(activeWord);
+}, true);
 addEventListener('popstate', route);
 addEventListener('hashchange', route);
 async function loadStories() {
