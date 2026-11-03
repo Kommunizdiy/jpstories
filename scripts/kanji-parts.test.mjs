@@ -40,7 +40,11 @@ test('every Genki kanji and every part under it is described', () => {
 test('families merge variants, need a meaning and at least four Genki kanji', () => {
   const families = buildFamilies(nodes);
   const people = families.find(f => f.key === '人');
-  for (const c of ['今', '食', '休', '作']) assert.ok(people.list.includes(c), c);
+  for (const c of ['休', '作', '何', '内']) assert.ok(people.list.includes(c), c);
+  for (const c of ['今', '食', '会', '金']) assert.ok(!people.list.includes(c), c);
+  const roof = families.find(f => f.key === '𠆢');
+  for (const c of ['今', '食', '会', '金', '全']) assert.ok(roof.list.includes(c), c);
+  assert.ok(!roof.list.includes('休'));
   assert.equal(families.find(f => f.key === '亻'), undefined);
   assert.deepEqual(families.find(f => f.key === '𠂇').list.slice().sort(), ['右', '友', '左', '有'].sort());
   assert.equal(familyKey(nodes, '亻'), '人');
@@ -72,4 +76,16 @@ test('meanings are in Russian and every kanji of the book or the joyo list has o
     for (const text of [node.m, node.f, node.t]) if (text) assert.doesNotMatch(text, /[A-Za-z]/, c);
     if (node.j && c !== '々') assert.ok(node.m || node.f, `${c}: нет значения`);
   }
+});
+test('checked splits follow the structure databases, including meanings from history', () => {
+  const names = c => nodes[c].p.map(([part]) => part);
+  assert.deepEqual(names('行'), ['彳', '亍']);
+  assert.deepEqual(names('旅'), ['方', '𠂉', '𧘇']);
+  assert.deepEqual(names('帰'), ['丨', '丿', '帚']);
+  assert.deepEqual(names('無'), ['𠂉', '卌', '一', '灬']);
+  assert.deepEqual(names('楽'), ['白', '丷', '八', '木']);
+  assert.ok(!nodes['帰'].p.some(([part]) => part === '刂'));
+  assert.ok(!names('母').includes('毋'));
+  const knife = buildFamilies(nodes).find(f => f.key === '刀');
+  assert.ok(knife && !knife.list.includes('帰'));
 });
