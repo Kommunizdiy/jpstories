@@ -212,7 +212,7 @@ function deepUses(c) {
 function gloss(c) {
   const n = W[c];
   if (n.m) return { t: n.m };
-  if (n.f) return { t: 'просто форма: ' + n.f, form: true };
+  if (n.f) return { t: n.p.length ? n.f : 'просто форма: ' + n.f, form: true };
   if (n.e) return { t: n.e + ' (англ.)' };
   return { t: 'значения в словаре нет', form: true };
 }
