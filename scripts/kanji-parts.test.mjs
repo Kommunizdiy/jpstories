@@ -66,3 +66,10 @@ test('part position is read from its box inside the kanji', () => {
   assert.equal(positionOf({ x: 70, y: 10, width: 30, height: 90 }, whole), 'right');
   assert.equal(positionOf({ x: 40, y: 40, width: 30, height: 30 }, whole), 'inside');
 });
+test('meanings are in Russian and every kanji of the book or the joyo list has one', () => {
+  for (const [c, node] of Object.entries(nodes)) {
+    assert.equal(node.e, undefined, c);
+    for (const text of [node.m, node.f, node.t]) if (text) assert.doesNotMatch(text, /[A-Za-z]/, c);
+    if (node.j && c !== '々') assert.ok(node.m || node.f, `${c}: нет значения`);
+  }
+});

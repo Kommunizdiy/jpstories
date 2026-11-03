@@ -192,7 +192,7 @@ export async function showParts(container, route) {
     <nav class="kp-tabs" aria-label="Режимы" id="kp-tabs"></nav>
     <div id="kp-bar"></div>
     <div id="kp-view"><p>Загружаем кандзи…</p></div>
-    <p class="kp-credit">Черты и порядок их написания: <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener">KanjiVG</a>, Ulrich Apel и соавторы, лицензия CC BY-SA 3.0. Чтения и английские значения: KANJIDIC (EDRDG, CC BY-SA). Деление на части местами упрощено, подсказки для памяти придуманы как ассоциации. Русские значения частей и кандзи Genki II написал Claude, со словарём они не сверялись.</p>`;
+    <p class="kp-credit">Черты и порядок их написания: <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener">KanjiVG</a>, Ulrich Apel и соавторы, лицензия CC BY-SA 3.0. Чтения и основа значений: KANJIDIC (EDRDG, CC BY-SA). Деление на части местами упрощено, подсказки для памяти придуманы как ассоциации. Русские значения написал и перевёл с английского Claude, со словарём они не сверялись.</p>`;
   view = container.querySelector('#kp-view'); bar = container.querySelector('#kp-bar');
   const tabs = container.querySelector('#kp-tabs');
   const drawTabs = () => { tabs.innerHTML = TABS.map(([id, name]) => `<a href="${id === 'walk' || !deck?.part ? partsHash({ tab: id }) : deckHash({ tab: id })}" ${id === tab ? 'aria-current="page"' : ''}>${name}</a>`).join(''); };
@@ -424,7 +424,6 @@ function gloss(c) {
   const n = W[c];
   if (n.m) return { t: n.m };
   if (n.f) return { t: n.p.length ? n.f : 'просто форма: ' + n.f, form: true };
-  if (n.e) return { t: n.e + ' (англ.)' };
   return { t: 'значения в словаре нет', form: true };
 }
 let walkJump = false;
