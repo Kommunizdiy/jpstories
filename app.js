@@ -1,5 +1,5 @@
 import { routeHash, resolveRoute, routeView, referenceHash, seriesHash, partsHash } from './routing.js';
-import { showReference, loadReference, dictionaryMatches } from './reference.js';
+import { showReference, loadReference, dictionaryMatches, kanjiForWord } from './reference.js';
 import { readingPlan, plural } from './series.js';
 import { splitSections, tasksOf, glossaryOf, TOKEN } from './sections.js';
 import { showParts } from './kanji-parts.js';
@@ -435,18 +435,24 @@ function showWord(element, surface, reading, meaning) {
   $('#word-surface').textContent = surface; $('#word-reading').textContent = reading; $('#word-meaning').textContent = meaning;
   const popup = $('#word-popup'); popup.hidden = false;
   const dictionary = $('#word-dictionary'); dictionary.hidden = true;
-  const kanji = [...new Set(surface.match(/\p{Script=Han}/gu) || [])], kanjiLinks = $('#word-kanji');
-  kanjiLinks.hidden = !kanji.length; kanjiLinks.replaceChildren();
-  if (kanji.length) {
-    kanjiLinks.append('Части:');
-    for (const k of kanji) { const link = el('a', '', k, 'ja'); link.href = partsHash({ k }); kanjiLinks.append(link); }
-  }
+  showKanjiLinks(surface);
   placePopup(element);
   loadReference().then(data => {
-    if (activeWord !== element || !dictionaryMatches(data, surface).length) return;
-    dictionary.href = referenceHash({ view: 'vocab', q: surface }); dictionary.hidden = false;
+    if (activeWord !== element) return;
+    const written = kanjiForWord(data.vocab, surface, meaning);
+    if (written.length) showKanjiLinks(written.join(''), written.join(' / '));
+    if (dictionaryMatches(data, surface).length) { dictionary.href = referenceHash({ view: 'vocab', q: surface }); dictionary.hidden = false; }
     placePopup(element);
   }).catch(() => {});
+}
+// Ссылки на разбор кандзи. Для слова, данного каной, сначала показываем, как оно пишется.
+function showKanjiLinks(text, writtenAs = '') {
+  const kanji = [...new Set(text.match(/\p{Script=Han}/gu) || [])], box = $('#word-kanji');
+  box.hidden = !kanji.length; box.replaceChildren();
+  if (!kanji.length) return;
+  if (writtenAs) { box.append('Пишется ', el('span', 'word-written', writtenAs, 'ja')); box.append(el('br')); }
+  box.append('Разбор кандзи:');
+  for (const k of kanji) { const link = el('a', '', k, 'ja'); link.href = partsHash({ k }); box.append(link); }
 }
 function placePopup(element) {
   const popup = $('#word-popup');

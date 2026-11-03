@@ -53,3 +53,21 @@ test('story words find dictionary entries by kanji or by kana, but a one-kana pa
   assert.equal(dictionaryMatches(ref, 'は').length, 0);
   assert.equal(dictionaryMatches(ref, 'きました').length, 0);
 });
+test('a word written in kana finds its kanji only when the meaning agrees', async () => {
+  const { kanjiForWord } = await import('../reference.js');
+  const vocab = [
+    { type: 'n', kanji: '学生', kana: 'がくせい', meaning: 'студент' }, { type: 'n', kanji: '下', kana: 'した', meaning: 'под' },
+    { type: 'n', kanji: '私', kana: 'わたし', meaning: 'я' }, { type: 'ru', kanji: '食べる', kana: 'たべる', meaning: 'есть' },
+    { type: 'u', kanji: '書く', kana: 'かく', meaning: 'писать' }, { type: 'u', kanji: '行く', kana: 'いく', meaning: 'идти, ехать' },
+    { type: 'irr', kanji: '来る', kana: 'くる', meaning: 'приходить' }, { type: 'ru', kanji: '着る', kana: 'きる', meaning: 'надевать' },
+  ];
+  assert.deepEqual(kanjiForWord(vocab, 'がくせい', 'студент'), ['学生']);
+  assert.deepEqual(kanjiForWord(vocab, 'わたし', 'я'), ['私']);
+  assert.deepEqual(kanjiForWord(vocab, 'たべました', 'есть (вежливо, прошедшее)'), ['食べる']);
+  assert.deepEqual(kanjiForWord(vocab, 'かいて', 'писать (форма て)'), ['書く']);
+  assert.deepEqual(kanjiForWord(vocab, 'いって', 'ехать'), ['行く']);
+  assert.deepEqual(kanjiForWord(vocab, 'きました', 'приходить (вежливо)'), ['来る']);
+  assert.deepEqual(kanjiForWord(vocab, 'した', 'делать (прошедшее)'), []);
+  assert.deepEqual(kanjiForWord(vocab, 'かきました', 'рисовать'), []);
+  assert.deepEqual(kanjiForWord(vocab, '学生', 'студент'), []);
+});

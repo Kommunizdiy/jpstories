@@ -27,6 +27,41 @@ export function dictionaryMatches(data, surface) {
   return data.vocab.filter(w => w.kanji === s || (w.kana === s && (!w.kanji || [...s].length > 1)));
 }
 
+// Формы глагола, которые встречаются в текстах каной: вежливые, て/た, ている, ない.
+const ROW = {
+  う: ['い', 'わ', 'って', 'った'], く: ['き', 'か', 'いて', 'いた'], ぐ: ['ぎ', 'が', 'いで', 'いだ'], す: ['し', 'さ', 'して', 'した'],
+  つ: ['ち', 'た', 'って', 'った'], ぬ: ['に', 'な', 'んで', 'んだ'], ぶ: ['び', 'ば', 'んで', 'んだ'], む: ['み', 'ま', 'んで', 'んだ'], る: ['り', 'ら', 'って', 'った'],
+};
+function verbForms(w) {
+  const k = w.kana, base = k.slice(0, -1);
+  let stem, neg, te, ta;
+  if (w.type === 'ru') { stem = neg = base; te = base + 'て'; ta = base + 'た'; }
+  else if (w.type === 'u' && ROW[k.at(-1)]) {
+    const [i, a, t, d] = ROW[k.at(-1)];
+    stem = base + i; neg = base + a; te = base + t; ta = base + d;
+    if (k === 'いく') { te = 'いって'; ta = 'いった'; }
+  } else if (k === 'くる') { stem = 'き'; neg = 'こ'; te = 'きて'; ta = 'きた'; }
+  else return [];
+  const polite = ['ます', 'ました', 'ません', 'ませんでした', 'ましょう', 'ませんか', 'たい', 'たいです', 'ながら'].map(end => stem + end);
+  const te2 = ['', 'いる', 'います', 'いました', 'いません', 'ください'].map(end => te + end);
+  return [...polite, ...te2, ta, neg + 'ない', neg + 'なかった', neg + 'ないで'];
+}
+// Слишком общие слова совпадают у разных глаголов: いる «быть» и 要る «быть нужным», 泊まる и 止まる «останавливаться».
+const VAGUE = new Set(['быть', 'оста', 'дела']);
+const meaningStems = text => {
+  const words = text.toLowerCase().split(/[^а-яёa-z]+/).filter(Boolean);
+  return words.map(word => word.length >= 3 ? word.slice(0, 4) : word).filter(word => (word.length >= 3 || words.length === 1) && !VAGUE.has(word));
+};
+// Как пишется кандзи слово, которое в тексте дано каной. Значение должно совпасть с контекстным:
+// одна и та же кана бывает разными словами (した — не 下, かぜ «ветер» — не 風邪), тогда лучше ничего не показывать.
+export function kanjiForWord(vocab, surface, meaning) {
+  const s = surface.trim();
+  if ([...s].length < 2 || /\p{Script=Han}/u.test(s)) return [];
+  const context = new Set(meaningStems(meaning));
+  const found = vocab.filter(w => /\p{Script=Han}/u.test(w.kanji) && (w.kana === s || verbForms(w).includes(s)) && meaningStems(w.meaning).some(stem => context.has(stem)));
+  return [...new Set(found.map(w => w.kanji))];
+}
+
 const TITLES = { grammar: 'Грамматика', vocab: 'Словарь', kanji: 'Кандзи', counters: 'Счётные суффиксы' };
 const INTROS = {
   grammar: 'Краткие правила Genki I по урокам с примерами.',

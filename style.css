@@ -190,7 +190,7 @@ svg.kp-k .kp-ghost path{stroke:var(--kp-guide);stroke-width:1.4;stroke-dasharray
 .kp-hintr{margin:0 0 10px;padding:10px 12px;background:var(--kp-cell);border:1px solid var(--line);border-radius:6px}
 .kp-hintr b{font-family:var(--kp-hand);font-size:17px}
 .kp-hintr small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
-.word-kanji{margin-top:8px;font-size:12px;color:var(--muted)}.word-kanji a{font:500 16px 'Noto Serif JP',serif;color:var(--green);margin-left:6px}
+.word-kanji{margin-top:12px;font-size:12px;line-height:2;color:var(--muted)}.word-kanji a{font:500 18px 'Noto Serif JP',serif;color:var(--green);margin-left:8px}.word-written{font:500 15px 'Noto Serif JP',serif;color:var(--ink)}
 .k-big a{color:inherit;text-decoration:none}.k-big a:hover{color:#b76548}
 @media(max-width:700px){.kp-two,.kp-walk{grid-template-columns:minmax(0,1fr)}.kp-sq{max-width:320px;margin-inline:auto}.kp-ctrl{justify-content:center}.kp-pick{width:calc((100% - 24px)/5);height:auto;aspect-ratio:1}.site-nav{gap:16px}#parts-view .kp-tabs a{padding:8px 9px}}
 @media(prefers-reduced-motion:reduce){.kp-bg,.kp-part{transition:none}.kp-no{animation:none}.kp-hana path{animation:none;stroke-dashoffset:0}}
