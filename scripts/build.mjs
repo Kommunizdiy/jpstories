@@ -7,7 +7,7 @@ import { collectSeries, readSeries } from './series.mjs';
 
 export const root = fileURLToPath(new URL('../', import.meta.url));
 export const output = path.join(root, 'dist');
-export const staticFiles = ['index.html', 'app.js', 'routing.js', 'reference.js', 'series.js', 'sections.js', 'flashcards.js', 'style.css'];
+export const staticFiles = ['index.html', 'app.js', 'routing.js', 'reference.js', 'series.js', 'sections.js', 'flashcards.js', 'kanji-parts.js', 'style.css'];
 export async function build() {
   const directory = path.join(root, 'stories');
   const files = (await readdir(directory)).filter(file => file.endsWith('.txt')).sort();
@@ -20,6 +20,7 @@ export async function build() {
   await writeFile(path.join(output, 'stories.json'), JSON.stringify(stories));
   await writeFile(path.join(output, 'series.json'), JSON.stringify(series));
   await writeFile(path.join(output, 'reference.json'), JSON.stringify(reference));
+  await copyFile(path.join(root, 'reference', 'kanji-parts.json'), path.join(output, 'kanji-parts.json'));
   await writeFile(path.join(output, '.nojekyll'), '');
   return stories;
 }

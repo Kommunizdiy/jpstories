@@ -34,6 +34,11 @@ export function routeView(hash) {
   const view = params.get('view');
   if (!view && params.get('series')) return { view: 'series', series: params.get('series') };
   if (view === 'tasks') return { view: 'tasks' };
+  if (view === 'parts') {
+    const route = { view, tab: PARTS_TABS.includes(params.get('tab')) ? params.get('tab') : 'walk' };
+    if (params.get('k')) route.k = params.get('k');
+    return route;
+  }
   if (!REFERENCE_VIEWS.includes(view)) return { view: 'stories' };
   const route = { view };
   const lesson = Number(params.get('lesson'));
@@ -41,6 +46,16 @@ export function routeView(hash) {
   if (params.get('theme')) route.theme = params.get('theme');
   if (params.get('q')) route.q = params.get('q');
   return route;
+}
+
+// Части кандзи: #view=parts — прогулка, &k=кандзи — с какого знака, &tab=study|build|tell — тренажёр.
+export const PARTS_TABS = ['walk', 'study', 'build', 'tell'];
+
+export function partsHash({ tab, k } = {}) {
+  const params = new URLSearchParams({ view: 'parts' });
+  if (tab && tab !== 'walk') params.set('tab', tab);
+  if (k) params.set('k', k);
+  return `#${params}`;
 }
 
 export function referenceHash({ view, lesson, theme, q }) {

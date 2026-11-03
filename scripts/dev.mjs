@@ -6,7 +6,7 @@ import { build, output, staticFiles } from './build.mjs';
 const preview = process.argv.includes('--preview');
 if (!preview) await build();
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8' };
-const files = new Set([...staticFiles, 'stories.json', 'series.json', 'reference.json']);
+const files = new Set([...staticFiles, 'stories.json', 'series.json', 'reference.json', 'kanji-parts.json']);
 const rebuildOn = new Set(['index.html', 'stories.json', 'series.json', 'reference.json']);
 let pending = Promise.resolve();
 const server = http.createServer(async (request, response) => {

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { routeHash, resolveRoute, routeView, referenceHash } from '../routing.js';
+import { routeHash, resolveRoute, routeView, referenceHash, partsHash } from '../routing.js';
 
 const stories = [{ id: '01-first', lesson: 1 }, { id: '01-second', lesson: 1 }, { id: '13-next-book', lesson: 13 }];
 test('a direct story link selects the exact story and book, ahead of remembered state', () => {
@@ -31,4 +31,10 @@ test('reference sections have their own links; everything else stays a story lin
   for (const hash of ['', '#story=01-first', '#lesson=4', '#view=unknown', '#%']) assert.deepEqual(routeView(hash), { view: 'stories' });
   assert.deepEqual(routeView('#view=kanji&lesson=99'), { view: 'kanji' });
   assert.equal(referenceHash({ view: 'counters' }), '#view=counters');
+});
+test('kanji parts have their own links with an encoded kanji', () => {
+  assert.deepEqual(routeView(partsHash({ k: '歌' })), { view: 'parts', tab: 'walk', k: '歌' });
+  assert.deepEqual(routeView(partsHash({ tab: 'build' })), { view: 'parts', tab: 'build' });
+  assert.deepEqual(routeView('#view=parts&tab=unknown'), { view: 'parts', tab: 'walk' });
+  assert.equal(partsHash(), '#view=parts');
 });

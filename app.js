@@ -1,7 +1,8 @@
-import { routeHash, resolveRoute, routeView, referenceHash, seriesHash } from './routing.js';
+import { routeHash, resolveRoute, routeView, referenceHash, seriesHash, partsHash } from './routing.js';
 import { showReference, loadReference, dictionaryMatches } from './reference.js';
 import { readingPlan, plural } from './series.js';
 import { splitSections, tasksOf, glossaryOf, TOKEN } from './sections.js';
+import { showParts } from './kanji-parts.js';
 
 let stories = [];
 let series = [];
@@ -69,7 +70,8 @@ function route(force = false) {
   const target = routeView(location.hash);
   const isStories = target.view === 'stories' || target.view === 'series';
   $('#stories-view').hidden = !isStories;
-  $('#reference-view').hidden = isStories || target.view === 'tasks';
+  $('#reference-view').hidden = isStories || ['tasks', 'parts'].includes(target.view);
+  $('#parts-view').hidden = target.view !== 'parts';
   $('#tasks-view').hidden = target.view !== 'tasks';
   document.querySelectorAll('.site-nav a').forEach(a => {
     const on = a.dataset.view === (isStories ? 'stories' : target.view);
@@ -81,6 +83,7 @@ function route(force = false) {
   if (isStories) { restoreLocation(!location.hash); return; }
   scrollTo(0, 0);
   if (target.view === 'tasks') { showTasks(); return; }
+  if (target.view === 'parts') { showParts($('#parts-view'), target); return; }
   showReference($('#reference-view'), target);
 }
 function renderLessons(active = lesson) {
@@ -432,6 +435,12 @@ function showWord(element, surface, reading, meaning) {
   $('#word-surface').textContent = surface; $('#word-reading').textContent = reading; $('#word-meaning').textContent = meaning;
   const popup = $('#word-popup'); popup.hidden = false;
   const dictionary = $('#word-dictionary'); dictionary.hidden = true;
+  const kanji = [...new Set(surface.match(/\p{Script=Han}/gu) || [])], kanjiLinks = $('#word-kanji');
+  kanjiLinks.hidden = !kanji.length; kanjiLinks.replaceChildren();
+  if (kanji.length) {
+    kanjiLinks.append('Части:');
+    for (const k of kanji) { const link = el('a', '', k, 'ja'); link.href = partsHash({ k }); kanjiLinks.append(link); }
+  }
   placePopup(element);
   loadReference().then(data => {
     if (activeWord !== element || !dictionaryMatches(data, surface).length) return;

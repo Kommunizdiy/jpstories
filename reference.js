@@ -1,5 +1,5 @@
 // Справочник: грамматика, словарь, кандзи и счётные суффиксы. Данные — reference.json из папки reference/.
-import { referenceHash } from './routing.js';
+import { referenceHash, partsHash } from './routing.js';
 import { openFlashcards } from './flashcards.js';
 
 let cache = null;
@@ -219,12 +219,12 @@ function renderKanji(container, route) {
   const lessons = [...new Set(ref.kanji.map(k => k.lesson))];
   let lesson = lessons.includes(route.lesson) ? route.lesson : 'all';
   container.innerHTML = head('kanji') + chipRow('Урок', [['all', 'Все']].concat(lessons.map(n => [n, n])), lesson, 'ref-k-lessons') +
-    '<p class="ref-legend">Онъёми — катаканой, кунъёми — хираганой; в скобках окуригана.</p><div id="ref-body" class="k-grid"></div>';
+    '<p class="ref-legend">Онъёми — катаканой, кунъёми — хираганой; в скобках окуригана. Нажмите на кандзи, чтобы посмотреть, из каких частей он состоит.</p><div id="ref-body" class="k-grid"></div>';
   const body = container.querySelector('#ref-body');
   const draw = () => {
     container.querySelectorAll('#ref-k-lessons .chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(lesson))));
     body.innerHTML = ref.kanji.filter(k => lesson === 'all' || k.lesson === lesson).map(k =>
-      `<div class="k-card"><div class="k-big" lang="ja">${esc(k.kanji)}<small>урок ${k.lesson}</small></div><div class="k-on" lang="ja">${esc(k.on || '—')}</div><div class="k-kun" lang="ja">${esc(k.kun || '—')}</div><div class="k-mean">${esc(k.meaning)}</div></div>`).join('');
+      `<div class="k-card"><div class="k-big" lang="ja"><a href="${esc(partsHash({ k: k.kanji }))}" title="Части кандзи">${esc(k.kanji)}</a><small>урок ${k.lesson}</small></div><div class="k-on" lang="ja">${esc(k.on || '—')}</div><div class="k-kun" lang="ja">${esc(k.kun || '—')}</div><div class="k-mean">${esc(k.meaning)}</div></div>`).join('');
   };
   container.querySelector('#ref-k-lessons').onclick = e => {
     const b = e.target.closest('.chip'); if (!b) return;
