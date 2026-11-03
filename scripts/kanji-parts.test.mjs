@@ -24,6 +24,7 @@ test('parts split all the way down, including parts without their own KanjiVG fi
   assert.deepEqual(names('部').includes('咅'), true);
   assert.deepEqual(names('咅'), ['立', '口']);
   assert.deepEqual(names('翟'), ['羽', '隹']);
+  for (const c of ['左', '右', '友', '有']) assert.equal(names(c)[0], '𠂇', c);
 });
 test('every Genki kanji and every part under it is described', () => {
   const seen = new Set(), stack = Object.keys(nodes).filter(c => nodes[c].l);
@@ -41,6 +42,7 @@ test('families merge variants, need a meaning and at least four Genki kanji', ()
   const people = families.find(f => f.key === '人');
   for (const c of ['今', '食', '休', '作']) assert.ok(people.list.includes(c), c);
   assert.equal(families.find(f => f.key === '亻'), undefined);
+  assert.deepEqual(families.find(f => f.key === '𠂇').list.slice().sort(), ['右', '友', '左', '有'].sort());
   assert.equal(familyKey(nodes, '亻'), '人');
   assert.equal(families.find(f => f.key === '丿'), undefined);
   assert.equal(families.find(f => f.key === '一'), undefined);
