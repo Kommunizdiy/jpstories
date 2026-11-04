@@ -12,7 +12,9 @@ test('every part points to a known node and to strokes of its kanji, without ove
       return strokes;
     });
     assert.ok(used.every(i => Number.isInteger(i) && i >= 0 && i < node.s.length), `${c}: номер черты вне кандзи`);
-    assert.equal(new Set(used).size, used.length, `${c}: черта в двух частях`);
+    // У этих кандзи части по-настоящему делят одну вертикальную черту.
+    const shared = { 里: [4], 果: [5], 重: [6] }[c] || [];
+    assert.equal(new Set(used).size + shared.length, used.length, `${c}: черта в двух частях`);
     assert.equal(node.sc, node.s.length, c);
   }
 });
@@ -109,6 +111,8 @@ test('example words contain their kanji and have a reading and a meaning', () =>
 test('parts of Genki kanji are split like the structure databases too', () => {
   const names = c => nodes[c].p.map(([part]) => part);
   assert.deepEqual(names('官'), ['宀', '㠯']);
+  assert.deepEqual(names('里'), ['田', '土']);
+  assert.ok(nodes['里'].p[0][1].includes(4) && nodes['里'].p[1][1].includes(4));
   assert.deepEqual(names('䒑'), ['丷', '一']);
   assert.equal(nodes['䒑'].sc, 3);
   assert.deepEqual(names('开'), ['一', '廾']);

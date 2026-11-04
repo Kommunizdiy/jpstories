@@ -269,10 +269,11 @@ function playOrder() {
 function drawStrokes(square) {
   if (!motion()) return;
   const paths = [...square.querySelectorAll('path[data-n]')].sort((a, b) => a.dataset.n - b.dataset.n);
-  paths.forEach((p, i) => {
+  // Черта, общая для двух частей, рисуется в обеих одновременно.
+  paths.forEach(p => {
     p.getAnimations().forEach(old => old.cancel());
     p.setAttribute('pathLength', '1'); p.style.strokeDasharray = '1';
-    const an = p.animate([{ strokeDashoffset: 1, opacity: 0 }, { strokeDashoffset: 1, opacity: 1, offset: .01 }, { strokeDashoffset: 0, opacity: 1 }], { duration: 420, delay: i * 460, fill: 'backwards', easing: 'ease-in-out' });
+    const an = p.animate([{ strokeDashoffset: 1, opacity: 0 }, { strokeDashoffset: 1, opacity: 1, offset: .01 }, { strokeDashoffset: 0, opacity: 1 }], { duration: 420, delay: +p.dataset.n * 460, fill: 'backwards', easing: 'ease-in-out' });
     an.onfinish = () => { p.style.strokeDasharray = ''; p.removeAttribute('pathLength'); };
   });
 }
