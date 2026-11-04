@@ -89,3 +89,11 @@ test('checked splits follow the structure databases, including meanings from his
   const knife = buildFamilies(nodes).find(f => f.key === '刀');
   assert.ok(knife && !knife.list.includes('帰'));
 });
+test('simple kanji split where the structure databases split them', () => {
+  const names = c => nodes[c].p.map(([part]) => part);
+  assert.deepEqual(names('大'), ['一', '人']);
+  assert.deepEqual(names('土'), ['十', '一']);
+  assert.deepEqual(names('出'), ['屮', '凵']);
+  assert.deepEqual(names('主'), ['丶', '王']);
+  assert.deepEqual(names('上'), ['⺊', '一']);
+});
