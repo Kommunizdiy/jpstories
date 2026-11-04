@@ -202,6 +202,7 @@ svg.kp-k .kp-ghost path{stroke:var(--kp-guide);stroke-width:1.4;stroke-dasharray
 .k-big a{color:inherit;text-decoration:none}.k-big a:hover{color:#b76548}
 .kp-more>summary{display:none}
 svg.kp-k path.kp-hit{stroke:transparent;stroke-width:13;pointer-events:stroke}
+.kp-allwords{display:inline-block;margin-top:8px;font-size:14px}
 .kp-note{margin:8px 0 0;font-size:12px;color:var(--muted)}
 /* Телефон: всё нужное на одном экране. Шапка раздела сжата, набор свёрнут, поле сборки закреплено. */
 @media(max-width:700px){
@@ -252,6 +253,7 @@ svg.kp-k path.kp-hit{stroke:transparent;stroke-width:13;pointer-events:stroke}
   .kp-winfo>:not(.kp-head):not(.kp-yomi):not(.kp-tags){grid-column:1/-1}
   .kp-walk .kp-head span{font-size:17px}
   .kp-sec{margin-top:14px}
+  .kp-allwords{padding:8px 0}
   #parts-view .kp-node{min-height:44px}
   #parts-view .kp-use{min-height:40px;align-items:center}
   #parts-view .kp-use.kp-pale{min-width:40px;justify-content:center}

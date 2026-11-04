@@ -97,3 +97,12 @@ test('simple kanji split where the structure databases split them', () => {
   assert.deepEqual(names('主'), ['丶', '王']);
   assert.deepEqual(names('上'), ['⺊', '一']);
 });
+test('example words contain their kanji and have a reading and a meaning', () => {
+  for (const [c, node] of Object.entries(nodes)) {
+    for (const [word, kana, meaning] of node.w || []) {
+      assert.ok(word.includes(c), `${c}: ${word}`);
+      assert.match(kana, /^[\u3040-\u30ff]+$/, `${c}: ${word}`);
+      assert.ok(meaning.trim(), `${c}: ${word}`);
+    }
+  }
+});

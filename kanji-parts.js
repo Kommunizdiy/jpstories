@@ -1,6 +1,6 @@
 // Раздел «Части»: прогулка по частям кандзи и тренажёр для похожих кандзи (#view=parts).
 // Данные — reference/kanji-parts.json, черты из KanjiVG. Загружаются при первом открытии раздела.
-import { partsHash } from './routing.js';
+import { partsHash, referenceHash } from './routing.js';
 import { loadReference } from './reference.js';
 
 const range = (a, b) => { const out = []; for (let i = a; i <= b; i++) out.push(i); return out; };
@@ -107,8 +107,11 @@ function autoOffset(c, strokes) {
   const dx = b.x + b.width / 2 - (all.x + all.width / 2), dy = b.y + b.height / 2 - (all.y + all.height / 2), len = Math.hypot(dx, dy);
   return len < 3 ? [0, 0] : [dx / len * 20, dy / len * 20];
 }
-function wordsFor(c) {
-  return VOCAB.filter(w => w.kanji.includes(c)).sort((a, b) => a.kanji.length - b.kanji.length || a.lesson - b.lesson).slice(0, 2).map(w => [w.kanji, w.kana, w.meaning]);
+// Слова из словаря сайта, затем запасные из данных раздела и из тренажёра. Одно слово дважды не показываем.
+function wordsFor(c, limit = 2) {
+  const fromVocab = VOCAB.filter(w => w.kanji.includes(c)).sort((a, b) => a.kanji.length - b.kanji.length || a.lesson - b.lesson).map(w => [w.kanji, w.kana, w.meaning]);
+  const seen = new Set();
+  return [...fromVocab, ...(W[c]?.w || []), ...(K[c]?.words || [])].filter(([word]) => !seen.has(word) && seen.add(word)).slice(0, limit);
 }
 const partGloss = label => { const g = gloss(label); return g.form ? g.t.replace('просто форма: ', '') : g.t; };
 function positionInFamily(c, part) {
@@ -471,6 +474,7 @@ function renderWalk(k) {
   }
   const trainKey = FAMILIES.find(f => f.key === familyKey(W, c))?.key;
   const trainForm = n.v && n.m ? { слева: 'left', справа: 'right', сверху: 'top', снизу: 'bottom' }[n.m.split(' ').at(-1)] : null;
+  const examples = wordsFor(c, 6), inVocab = VOCAB.filter(w => w.kanji.includes(c)).length;
   const lessons = {};
   for (const x in W) if (W[x].l) (lessons[W[x].l] ||= []).push(x);
   const useLink = (x, pale) => `<a class="kp-use ${pale ? 'kp-pale' : ''}" href="${partsHash({ k: x })}"><b lang="ja">${x}</b>${pale ? '' : `<small>${W[x].m || ''}</small>`}</a>`;
@@ -495,6 +499,7 @@ function renderWalk(k) {
           ${others.length ? `<p class="kp-label kp-gap">Вне Genki: ${others.length}</p><div class="kp-uses">${visible.map(x => useLink(x, true)).join('')}</div>${others.length > LIMIT && !showAll ? `<button class="kp-btn kp-gap" id="kp-more">Показать все ${others.length}</button>` : ''}` : ''}
           ${!uses.length ? '<p class="kp-none">Больше нигде в этом наборе.</p>' : ''}
         </div>
+        ${examples.length ? `<div class="kp-sec"><h3>Слова с этим кандзи</h3><ul class="kp-words">${examples.map(w => `<li><b lang="ja">${w[0]}</b><span lang="ja">${w[1]}</span>${w[2]}</li>`).join('')}</ul>${inVocab > examples.length ? `<a class="kp-allwords" href="${referenceHash({ view: 'vocab', q: c })}">Все слова в словаре: ${inVocab}</a>` : ''}</div>` : ''}
       </div>
     </div>`;
   cropAll(view);
