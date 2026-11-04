@@ -106,3 +106,12 @@ test('example words contain their kanji and have a reading and a meaning', () =>
     }
   }
 });
+test('parts of Genki kanji are split like the structure databases too', () => {
+  const names = c => nodes[c].p.map(([part]) => part);
+  assert.deepEqual(names('官'), ['宀', '㠯']);
+  assert.deepEqual(names('䒑'), ['丷', '一']);
+  assert.equal(nodes['䒑'].sc, 3);
+  assert.deepEqual(names('开'), ['一', '廾']);
+  assert.deepEqual(names('卯'), ['𠂎', '卩']);
+  for (const c of ['几', '勹', '儿', '𠂉']) assert.deepEqual(nodes[c].p, [], c);
+});
