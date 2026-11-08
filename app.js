@@ -116,7 +116,7 @@ function render(selectedId, historyMode = 'push', explicit = true) {
   $('#book-label').textContent = `GENKI ${book === 1 ? 'I' : 'II'} · 3RD EDITION`;
   $('#lesson-title').textContent = `Урок ${lesson}`;
   const lessonLinks = $('#lesson-links'); lessonLinks.replaceChildren();
-  if (lesson <= 12) {
+  if (lesson <= 23) {
     for (const [view, text] of [['grammar', 'Грамматика урока'], ['vocab', 'Слова урока']]) {
       const link = document.createElement('a'); link.href = referenceHash({ view, lesson }); link.textContent = text + ' →';
       lessonLinks.append(link);

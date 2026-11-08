@@ -24,12 +24,12 @@ test('vocabulary rows are validated: type, lesson, theme and column count', () =
   assert.throws(() => parseKanji('урок\tкандзи\tонъёми\tкунъёми\tзначение\n3\t一二\tイチ\tひと\tодин\n'), /один знак/);
 });
 
-test('the bundled reference: 12 grammar lessons, 609 words in known themes, 145 kanji, counter tables', async () => {
+test('the bundled reference: 23 grammar lessons, 994 words in known themes, 317 kanji, counter tables', async () => {
   const ref = await buildReference(root);
-  assert.deepEqual(ref.grammar.map(g => g.lesson), Array.from({ length: 12 }, (_, i) => i + 1));
-  assert.equal(ref.vocab.length, 609);
-  assert.equal(ref.kanji.length, 145);
-  assert.equal(new Set(ref.kanji.map(k => k.kanji)).size, 145);
+  assert.deepEqual(ref.grammar.map(g => g.lesson), Array.from({ length: 23 }, (_, i) => i + 1));
+  assert.equal(ref.vocab.length, 994);
+  assert.equal(ref.kanji.length, 317);
+  assert.equal(new Set(ref.kanji.map(k => k.kanji)).size, 317);
   assert.ok(ref.vocab.every(w => ref.themes.includes(w.theme)));
   assert.ok(ref.themes.every(t => ref.vocab.some(w => w.theme === t)), 'каждая тема не пустая');
   assert.ok(ref.counters.blocks.some(b => b.tables.some(t => t.rows.some(r => r.counter === '本'))));
@@ -38,7 +38,7 @@ test('the bundled reference: 12 grammar lessons, 609 words in known themes, 145 
 test('build writes reference.json and ships the reference module', async () => {
   await build();
   const json = JSON.parse(await readFile(path.join(output, 'reference.json'), 'utf8'));
-  assert.equal(json.vocab.length, 609);
+  assert.equal(json.vocab.length, 994);
   await readFile(path.join(output, 'reference.js'), 'utf8');
   const html = await readFile(path.join(output, 'index.html'), 'utf8');
   assert.match(html, /id="reference-view"/);

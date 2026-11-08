@@ -64,9 +64,9 @@ export function kanjiForWord(vocab, surface, meaning) {
 
 const TITLES = { grammar: 'Грамматика', vocab: 'Словарь', kanji: 'Кандзи', counters: 'Счётные суффиксы' };
 const INTROS = {
-  grammar: 'Краткие правила Genki I по урокам с примерами.',
-  vocab: 'Слова Genki I с кандзи, чтением и переводом: по темам или по урокам.',
-  kanji: '145 кандзи первой книги с чтениями и значениями.',
+  grammar: 'Краткие правила Genki I и II по урокам с примерами.',
+  vocab: 'Слова Genki I и II с кандзи, чтением и переводом: по темам или по урокам.',
+  kanji: 'Кандзи Genki I и II с чтениями и значениями.',
   counters: 'Счётные суффиксы урока 14 Genki II и повторение из первой книги.',
 };
 const POS = { n: 'сущ.', u: 'う-гл.', ru: 'る-гл.', irr: 'неправ. гл.', i: 'い-прил.', na: 'な-прил.', x: 'прочее' };
@@ -84,7 +84,7 @@ function chipRow(label, items, current, id) {
     items.map(([value, text, count]) => `<button type="button" class="chip" data-v="${esc(value)}" aria-pressed="${String(value) === String(current)}">${esc(text)}${count != null ? `<span class="c">${count}</span>` : ''}</button>`).join('') + '</div>';
 }
 function head(view, extra = '') {
-  return `<div class="ref-head"><div class="eyebrow">СПРАВОЧНИК · GENKI I</div><h1>${TITLES[view]}</h1><p class="intro">${INTROS[view]}</p>${extra}</div>`;
+  return `<div class="ref-head"><div class="eyebrow">СПРАВОЧНИК · GENKI I–II</div><h1>${TITLES[view]}</h1><p class="intro">${INTROS[view]}</p>${extra}</div>`;
 }
 
 export async function showReference(container, route) {
@@ -100,6 +100,11 @@ export async function showReference(container, route) {
     }
   }
   ({ grammar: renderGrammar, vocab: renderVocab, kanji: renderKanji, counters: renderCounters })[route.view](container, route);
+  // На телефоне ряды кнопок прокручиваются вбок: показываем выбранную кнопку (например, урок 19).
+  container.querySelectorAll('.ref-row').forEach(row => {
+    const chip = row.querySelector('.chip[aria-pressed="true"]');
+    if (chip && row.scrollWidth > row.clientWidth) row.scrollLeft = chip.offsetLeft - row.offsetLeft - (row.clientWidth - chip.offsetWidth) / 2;
+  });
 }
 
 /* Грамматика */
@@ -134,7 +139,7 @@ function renderVocab(container, route) {
   const st = {
     mode: route.q ? 'lessons' : route.theme ? 'themes' : store.get('mode', 'themes'),
     theme: themes.includes(route.theme) ? route.theme : 'all',
-    lesson: route.lesson && route.lesson <= 12 ? route.lesson : 'all',
+    lesson: route.lesson && route.lesson <= 23 ? route.lesson : 'all',
     group: store.get('group', 'all'),
     q: route.q || '',
   };
@@ -143,10 +148,10 @@ function renderVocab(container, route) {
     ${chipRow('Вид', [['themes', 'По темам'], ['lessons', 'По урокам']], st.mode, 'ref-mode')}
     <input id="ref-q" class="ref-search" type="search" placeholder="Поиск: кандзи, кана или перевод" autocomplete="off" aria-label="Поиск по словарю" value="${esc(st.q)}">
     ${chipRow('Тема', [['all', 'Все темы']].concat(themes.map(t => [t, t, themeCount[t]])), st.theme, 'ref-themes')}
-    ${chipRow('Урок', [['all', 'Все']].concat(Array.from({ length: 12 }, (_, i) => [i + 1, i + 1])), st.lesson, 'ref-lessons')}
+    ${chipRow('Урок', [['all', 'Все']].concat(Array.from({ length: 23 }, (_, i) => [i + 1, i + 1])), st.lesson, 'ref-lessons')}
     ${chipRow('Тип', GROUPS, st.group, 'ref-groups')}
     <div class="ref-toggles"><label><input type="checkbox" id="ref-hide-kn"> Скрыть чтение</label><label><input type="checkbox" id="ref-hide-ru"> Скрыть перевод</label><button type="button" class="fc-start" id="ref-cards">Карточки</button><span class="count" id="ref-count"></span></div>
-    <p class="ref-legend">Цветом выделены кандзи, которые изучаются в Genki I. «ур.» — урок, где слово появляется. В режиме проверки нажмите на строку, чтобы открыть скрытое.</p>
+    <p class="ref-legend">Цветом выделены кандзи, которые изучаются в Genki I и II. «ур.» — урок, где слово появляется. В режиме проверки нажмите на строку, чтобы открыть скрытое.</p>
   </div><div id="ref-body" class="v-list"></div>
   <p class="ref-note">Слова собраны по открытым спискам лексики Genki и сверены вручную. Свободного списка именно 3-го издания нет, поэтому отдельные слова в книге могут стоять в другом уроке.</p>`;
   const body = container.querySelector('#ref-body');

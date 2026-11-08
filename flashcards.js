@@ -36,7 +36,7 @@ export function setDirection(session, direction) {
   for (const card of session.queue) card.dir = pickDirection(direction, session.random);
 }
 
-// Чтение на лицевой стороне прячем, только если все кандзи слова уже знакомы (из Genki I).
+// Чтение на лицевой стороне прячем, только если все кандзи слова уже знакомы (из Genki I и II).
 export function hideReading(word, known) {
   const kanji = [...(word.kanji || '')].filter(c => /\p{Script=Han}/u.test(c));
   return kanji.length > 0 && kanji.every(c => known.has(c));
