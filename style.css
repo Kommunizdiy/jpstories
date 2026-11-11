@@ -277,3 +277,36 @@ svg.kp-k path.kp-hit{stroke:transparent;stroke-width:13;pointer-events:stroke}
   .word-dictionary{padding:8px 0;margin-top:6px}
 }
 @media(prefers-reduced-motion:reduce){.kp-bg,.kp-part{transition:none}.kp-no{animation:none}.kp-hana path{animation:none;stroke-dashoffset:0}}
+/* Тренажёр форм глаголов */
+.vb-select{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#7f8679}.vb-select select{border:1px solid var(--line);border-radius:5px;background:#fffefa;color:var(--ink);font:13px Arial,sans-serif;padding:7px 8px}
+.vb-go-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:18px 0 6px}.vb-go{padding:12px 20px;font-size:14px}
+.vb-rules{margin-top:22px;border-top:1px solid var(--line);padding-top:14px}.vb-rules>summary{cursor:pointer;font-size:13px;color:var(--green);padding:6px 0}
+.vb-table-wrap{overflow-x:auto;margin:12px 0 6px}.vb-table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.6}
+.vb-table th,.vb-table td{text-align:left;vertical-align:top;padding:10px 14px 10px 0;border-bottom:1px solid var(--line)}
+.vb-table thead th{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;color:var(--muted)}
+.vb-table tbody th{font:500 16px 'Noto Sans JP',sans-serif;color:var(--green);white-space:nowrap}.vb-table td:nth-child(2){font-family:'Noto Sans JP',sans-serif;white-space:nowrap}
+.vb-table td:nth-child(3){font-family:'Noto Serif JP',serif;color:#5d6a5f}.vb-score{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.vb-table tr.weak th,.vb-table tr.weak .vb-score{color:#a5583a}
+.vb-reset{border:0;background:none;padding:0;color:var(--green);font-size:12px;text-decoration:underline}
+.vb-card{cursor:default;min-height:0;padding:22px 18px 18px}.vb-card .fc-jp{font-size:40px}.vb-mean{font-size:13px;color:var(--muted);max-width:40ch;line-height:1.5}
+.vb-form{width:100%;max-width:400px;display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.vb-input{width:100%;border:1px solid #cfd5c3;border-radius:6px;background:#fffefa;color:var(--ink);font:22px 'Noto Sans JP',Arial,sans-serif;text-align:center;padding:11px 12px}
+.vb-input::placeholder{font-size:13px;color:#a9ad9f}.vb-input:focus{outline:2px solid #bb6b46;outline-offset:2px}.vb-input[readonly]{background:var(--paper)}
+.vb-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.vb-opt{border:1px solid #cfd5c3;border-radius:6px;background:#fffefa;color:var(--ink);font:19px 'Noto Sans JP',Arial,sans-serif;padding:13px 8px;min-height:52px}
+.vb-opt:hover:not(:disabled){border-color:#9baa95;background:#f3f3ea}.vb-opt:disabled{cursor:default;color:#9aa093}.vb-opt.ok{border-color:#6d8f6a;background:#e9f0e2;color:var(--green)}.vb-opt.no{border-color:#d8a58f;background:#f6ebe2;color:#a5583a}
+.vb-main{border:1px solid var(--green);background:var(--green);color:#fff;border-radius:6px;padding:13px 16px;font-size:14px}.vb-main:hover{background:#2b4a3c}
+.vb-result{border-radius:6px;padding:10px 12px;font-size:13px;line-height:1.6;text-align:center}.vb-result.ok{background:#e9f0e2;color:var(--green)}.vb-result.no{background:#f6ebe2;color:#8e4a30}
+.vb-result b{font-size:11px;letter-spacing:1.5px;text-transform:uppercase}.vb-answer{font:500 24px/1.4 'Noto Serif JP',serif;color:var(--ink)}.vb-yomi{font:15px 'Noto Sans JP',sans-serif;color:#9a795e}
+.vb-rule{font-size:13px}.vb-yours{font-size:13px}.vb-yours span{text-decoration:line-through;text-decoration-color:#c98f78}
+.vb-groups{list-style:none;padding:0;margin:0;text-align:left;border:1px solid var(--line);border-radius:6px}.vb-groups li{display:flex;justify-content:space-between;gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:14px}
+.vb-groups li:last-child{border-bottom:0}.vb-groups b{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}.vb-groups li.weak{color:#a5583a}
+.vb-done .fc-missed li{line-height:1.6}
+@media(max-width:700px){
+  /* Клавиатура закрывает низ экрана: глагол и поле ответа держим у верхнего края. */
+  .vb-overlay .fc-stage,.vb-play{display:flex;flex-direction:column}.vb-play{flex:1}
+  .vb-card{flex:0 0 auto;justify-content:flex-start;padding:16px 14px}.vb-card .fc-jp{font-size:34px}
+  .vb-form{margin-top:10px}.vb-input{font-size:20px}.vb-main,.vb-opt{min-height:48px}
+  .vb-select select{font-size:16px;min-height:40px}.vb-go{width:100%;min-height:48px}.vb-go-row .count{margin:0 auto}
+  .vb-table{font-size:13px}.vb-table th,.vb-table td{padding:9px 10px 9px 0}.vb-table td:nth-child(2),.vb-table tbody th{white-space:normal}
+  .vb-reset{display:inline-block;padding:10px 0;font-size:13px}
+}

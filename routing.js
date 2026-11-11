@@ -25,6 +25,16 @@ export function tasksHash() {
   return '#view=tasks';
 }
 
+// Тренажёр форм глаголов: #view=verbs, &form=te — форма, &lesson=N — глаголы до урока N.
+export const VERB_FORMS = ['masu', 'te', 'nai', 'ta', 'pot', 'vol', 'ba', 'pass', 'caus'];
+
+export function verbsHash({ form, lesson } = {}) {
+  const params = new URLSearchParams({ view: 'verbs' });
+  if (form) params.set('form', form);
+  if (lesson) params.set('lesson', String(lesson));
+  return `#${params}`;
+}
+
 // Reference sections: #view=grammar|vocab|kanji|counters, optionally &lesson=N, &theme=…, &q=….
 export const REFERENCE_VIEWS = ['grammar', 'vocab', 'kanji', 'counters'];
 
@@ -34,6 +44,13 @@ export function routeView(hash) {
   const view = params.get('view');
   if (!view && params.get('series')) return { view: 'series', series: params.get('series') };
   if (view === 'tasks') return { view: 'tasks' };
+  if (view === 'verbs') {
+    const route = { view };
+    if (VERB_FORMS.includes(params.get('form'))) route.form = params.get('form');
+    const upTo = Number(params.get('lesson'));
+    if (params.has('lesson') && Number.isInteger(upTo) && upTo >= 3 && upTo <= 23) route.lesson = upTo;
+    return route;
+  }
   if (view === 'parts') {
     const route = { view, tab: PARTS_TABS.includes(params.get('tab')) ? params.get('tab') : 'walk' };
     for (const name of ['k', 'part', 'form', 'p']) if (params.get(name)) route[name] = params.get(name);

@@ -1,8 +1,9 @@
-import { routeHash, resolveRoute, routeView, referenceHash, seriesHash, partsHash } from './routing.js';
+import { routeHash, resolveRoute, routeView, referenceHash, seriesHash, partsHash, verbsHash } from './routing.js';
 import { showReference, loadReference, dictionaryMatches, kanjiForWord } from './reference.js';
 import { readingPlan, plural } from './series.js';
 import { splitSections, tasksOf, glossaryOf, TOKEN } from './sections.js';
 import { showParts } from './kanji-parts.js';
+import { showVerbs } from './verbs.js';
 
 let stories = [];
 let series = [];
@@ -70,7 +71,8 @@ function route(force = false) {
   const target = routeView(location.hash);
   const isStories = target.view === 'stories' || target.view === 'series';
   $('#stories-view').hidden = !isStories;
-  $('#reference-view').hidden = isStories || ['tasks', 'parts'].includes(target.view);
+  $('#reference-view').hidden = isStories || ['tasks', 'parts', 'verbs'].includes(target.view);
+  $('#verbs-view').hidden = target.view !== 'verbs';
   $('#parts-view').hidden = target.view !== 'parts';
   $('#tasks-view').hidden = target.view !== 'tasks';
   document.querySelectorAll('.site-nav a').forEach(a => {
@@ -84,6 +86,7 @@ function route(force = false) {
   scrollTo(0, 0);
   if (target.view === 'tasks') { showTasks(); return; }
   if (target.view === 'parts') { showParts($('#parts-view'), target); return; }
+  if (target.view === 'verbs') { showVerbs($('#verbs-view'), target); return; }
   showReference($('#reference-view'), target);
 }
 function renderLessons(active = lesson) {
@@ -119,6 +122,10 @@ function render(selectedId, historyMode = 'push', explicit = true) {
   if (lesson <= 23) {
     for (const [view, text] of [['grammar', 'Грамматика урока'], ['vocab', 'Слова урока']]) {
       const link = document.createElement('a'); link.href = referenceHash({ view, lesson }); link.textContent = text + ' →';
+      lessonLinks.append(link);
+    }
+    if (lesson >= 3) {
+      const link = document.createElement('a'); link.href = verbsHash({ lesson }); link.textContent = 'Формы глаголов →';
       lessonLinks.append(link);
     }
   }
