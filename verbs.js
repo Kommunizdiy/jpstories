@@ -2,7 +2,7 @@
 // Глаголы берутся из словаря (reference/vocab.tsv, типы u / ru / irr). Ошибки считаются по группам
 // правила (например, «む・ぶ・ぬ → んで»), чтобы было видно, какую строку таблицы стоит повторить.
 import { loadReference } from './reference.js';
-import { verbsHash, VERB_FORMS } from './routing.js';
+import { verbsHash, referenceHash, VERB_FORMS } from './routing.js';
 
 export const FORMS = [
   { id: 'masu', chip: 'ます', name: 'ます-форма', lesson: 3 },
@@ -11,7 +11,7 @@ export const FORMS = [
   { id: 'ta', chip: 'た', name: 'た-форма', lesson: 9 },
   { id: 'pot', chip: 'Потенциальная', name: 'Потенциальная форма', lesson: 13 },
   { id: 'vol', chip: 'Волитивная', name: 'Волитивная форма', lesson: 15 },
-  { id: 'ba', chip: 'ば', name: 'ば-форма', lesson: 18 },
+  { id: 'ba', chip: 'ば', name: 'ば-форма', lesson: 18, grammar: [18, 22] },
   { id: 'pass', chip: 'Пассив', name: 'Пассив', lesson: 21 },
   { id: 'caus', chip: 'Каузатив', name: 'Каузатив', lesson: 22 },
 ];
@@ -288,6 +288,7 @@ export async function showVerbs(container, route = {}) {
     </div>
     <div class="vb-go-row"><button type="button" class="fc-start vb-go"${pool.length ? '' : ' disabled'}>Начать · ${verbsWord(Math.min(SESSION_SIZE, pool.length))}</button><span class="count">В наборе: ${verbsWord(pool.length)}</span></div>
     ${form.lesson > state.upTo ? `<p class="ref-status">${esc(form.name)} появляется в уроке ${form.lesson} — тренируете её заранее на глаголах уроков 3–${state.upTo}.</p>` : ''}
+    <p class="vb-grammar">Ещё не проходили эту форму? ${(form.grammar || [form.lesson]).map(n => `<a href="${esc(referenceHash({ view: 'grammar', lesson: n }))}">Грамматика урока ${n} →</a>`).join(' ')}</p>
     <details class="vb-rules" ${store.get('rules', true) ? 'open' : ''}><summary>Правило и ваши результаты · ${esc(form.name)}</summary>
       <div class="vb-table-wrap"><table class="vb-table"><thead><tr><th scope="col">Группа</th><th scope="col">Что меняется</th><th scope="col">Примеры</th><th scope="col">Ваш счёт</th></tr></thead><tbody>${rows}</tbody></table></div>
       <p class="ref-status">Набрать ответ можно хираганой, с кандзи или латиницей (yonde → よんで). «Ваш счёт» — ответы с первой попытки. Спрячьте таблицу перед тренировкой, если хотите проверить себя честно.${Object.keys(stats).length ? ' <button type="button" class="vb-reset">Сбросить результаты этой формы</button>' : ''}</p>

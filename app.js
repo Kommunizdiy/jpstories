@@ -213,7 +213,7 @@ function annotated(paragraph, tag = 'p') {
     node.append(document.createTextNode(paragraph.slice(end, match.index)));
     const word = el('button', 'word', match[1]);
     word.setAttribute('aria-label', `${match[1]} — показать перевод`);
-    word.onclick = () => showWord(word, match[1], match[2], match[3]); node.append(word); end = match.index + match[0].length;
+    word.onclick = () => showWord(word, match[1], match[2], match[3], match[4]); node.append(word); end = match.index + match[0].length;
   }
   node.append(document.createTextNode(paragraph.slice(end)));
   return node;
@@ -235,7 +235,7 @@ function renderBody(story) {
         const term = el('dt');
         const word = el('button', 'word', entry.surface);
         word.setAttribute('aria-label', `${entry.surface} — показать перевод`);
-        word.onclick = () => showWord(word, entry.surface, entry.reading, entry.meaning);
+        word.onclick = () => showWord(word, entry.surface, entry.reading, entry.meaning, entry.base);
         term.append(word);
         if (entry.reading) term.append(el('span', 'glossary-kana', entry.reading));
         list.append(term, el('dd', '', entry.meaning, 'ru'));
@@ -441,18 +441,22 @@ function renderSeriesBar(story) {
   }
   bar.append(top, dots);
 }
-function showWord(element, surface, reading, meaning) {
+function showWord(element, surface, reading, meaning, base = '') {
   closePopup(); activeWord = element; popupScroll = scrollY; element.classList.add('selected');
   $('#word-surface').textContent = surface; $('#word-reading').textContent = reading; $('#word-meaning').textContent = meaning;
+  // Словарная форма глагола или прилагательного, если она указана в разметке четвёртым полем.
+  const baseLine = $('#word-base'); baseLine.hidden = !base; baseLine.replaceChildren();
+  if (base) baseLine.append('Словарная форма: ', el('span', '', base, 'ja'));
+  const lookup = base || surface;
   const popup = $('#word-popup'); popup.hidden = false;
   const dictionary = $('#word-dictionary'); dictionary.hidden = true;
   showKanjiLinks(surface);
   placePopup(element);
   loadReference().then(data => {
     if (activeWord !== element) return;
-    const written = kanjiForWord(data.vocab, surface, meaning);
+    const written = kanjiForWord(data.vocab, lookup, meaning);
     if (written.length) showKanjiLinks(written.join(''), written.join(' / '));
-    if (dictionaryMatches(data, surface).length) { dictionary.href = referenceHash({ view: 'vocab', q: surface }); dictionary.hidden = false; }
+    if (dictionaryMatches(data, lookup).length) { dictionary.href = referenceHash({ view: 'vocab', q: lookup }); dictionary.hidden = false; }
     placePopup(element);
   }).catch(() => {});
 }

@@ -5,7 +5,8 @@ export const SECTION_HEADINGS = {
   'Задания': 'tasks',
   'Перевод': 'translation',
 };
-export const TOKEN = /\[([^\]|]+)\|([^\]|]*)\|([^\]]+)\]/g;
+// [слово|чтение|перевод] или [слово|чтение|перевод|словарная форма] — четвёртое поле необязательно.
+export const TOKEN = /\[([^\]|]+)\|([^\]|]*)\|([^\]|]+)(?:\|([^\]|]+))?\]/g;
 
 export function splitSections(body) {
   const sections = [{ kind: 'text', title: '', paragraphs: [] }];
@@ -26,7 +27,7 @@ export function tasksOf(body) {
 export function glossaryOf(paragraphs) {
   const entries = [];
   for (const paragraph of paragraphs) {
-    for (const [, surface, reading, meaning] of paragraph.matchAll(TOKEN)) entries.push({ surface, reading, meaning });
+    for (const [, surface, reading, meaning, base = ''] of paragraph.matchAll(TOKEN)) entries.push({ surface, reading, meaning, base });
   }
   return entries;
 }

@@ -5,7 +5,7 @@ import path from 'node:path';
 import { root } from './build.mjs';
 import { parseStory } from './stories.mjs';
 
-const tokens = /\[([^\]|]+)\|([^\]|]*)\|([^\]]+)\]/g;
+const tokens = /\[([^\]|]+)\|([^\]|]*)\|([^\]|]+)(?:\|([^\]|]+))?\]/g;
 test('all 18 imported texts and 54 questions survive annotation without untranslated Japanese', async () => {
   const sources = JSON.parse(await readFile(path.join(root, 'scripts/import-data/source.json'), 'utf8'));
   const files = await readdir(path.join(root, 'stories'));

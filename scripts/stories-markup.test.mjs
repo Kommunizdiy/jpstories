@@ -5,7 +5,7 @@ import path from 'node:path';
 import { root } from './build.mjs';
 import { parseStory } from './stories.mjs';
 
-const tokens = /\[([^\]|]+)\|([^\]|]*)\|([^\]]+)\]/g;
+const tokens = /\[([^\]|]+)\|([^\]|]*)\|([^\]|]+)(?:\|([^\]|]+))?\]/g;
 
 // Главы больших историй: каждое японское слово кликабельно, с русским переводом, у кандзи есть чтение.
 test('every chapter of a series is fully annotated', async () => {
@@ -18,7 +18,8 @@ test('every chapter of a series is fully annotated', async () => {
     const rest = story.body.replace(tokens, '').replace('Вопросы к тексту', '');
     assert.doesNotMatch(rest, /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u, `${file}: неразмеченный японский текст`);
     assert.doesNotMatch(rest, /[\[\]|{}]/, `${file}: сломанная разметка`);
-    for (const [, surface, reading, meaning] of story.body.matchAll(tokens)) {
+    for (const [, surface, reading, meaning, base] of story.body.matchAll(tokens)) {
+      if (base !== undefined) assert.match(base, /^[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー]+$/u, `${file}: словарная форма «${base}» у ${surface}`);
       assert.match(meaning, /[а-яё]/iu, `${file}: ${surface} без перевода`);
       if (/\p{Script=Han}/u.test(surface)) assert.match(reading, /[ぁ-ゖ]/u, `${file}: ${surface} без чтения`);
     }

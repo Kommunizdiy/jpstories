@@ -16,6 +16,12 @@ test('section headings split a story body; text before them stays the main text'
   assert.deepEqual(tasksOf('Только текст.'), []);
 });
 
+test('a word may carry its dictionary form as an optional fourth field', () => {
+  const found = [...'[行って|いって|идти (て-форма)|行く]、[本|ほん|книга]。[おいて||класть|おく]'.matchAll(TOKEN)].map(m => m.slice(1, 5));
+  assert.deepEqual(found, [['行って', 'いって', 'идти (て-форма)', '行く'], ['本', 'ほん', 'книга', undefined], ['おいて', '', 'класть', 'おく']]);
+  assert.deepEqual(glossaryOf(['[行って|いって|идти|行く]\n[本|ほん|книга]']).map(e => e.base), ['行く', '']);
+});
+
 test('the tasks page has its own link', () => {
   assert.equal(tasksHash(), '#view=tasks');
   assert.deepEqual(routeView('#view=tasks'), { view: 'tasks' });
